@@ -28,8 +28,17 @@ class Repartidor:
         for widget in self.w_deliveryman.winfo_children():
             widget.destroy()
 
+    def modificar_datos(self):
+        print("Hola")
+        
+    def confirmar_pedido(self):
+        print("Hola")
+
+    def cancelar_pedido(self):
+        print("Hola")
+
     def ver_pedidos(self):
-        self.deliveryman_cursor.execute("SELECT * FROM PEDIDOS WHERE EN_REPARTO=0")
+        self.deliveryman_cursor.execute("SELECT * FROM PEDIDO WHERE EN_REPARTO=0")
 
         self.clean_w()
 
@@ -114,13 +123,13 @@ class Repartidor:
 
         # SEGUNDA FILA consulta de pedidos pendientes de envio
         etiqueta = Label(self.w_deliveryman,text="Consulta los pedidos pendientes")
-        etiqueta.grid(row=1,column=0,sitcky=NSEW)
+        etiqueta.grid(row=1,column=0,sticky=NSEW)
 
         boton_consulta = Button(self.w_deliveryman, text="Consultar pedidos", command=self.ver_pedidos)
         boton_consulta.grid(row=1,column=1,sticky=NSEW)
 
         # TERCERA FILA seleccionar pedido
-        seleccion = Button(self.w_deliveryman, text="Seleccionar pedido", command=self.order_selection)
+        seleccion = Button(self.w_deliveryman, text="Seleccionar pedido", command=self.order_selection(id_ped))
         seleccion.grid(row=2,column=0,sticky=NSEW)
 
         # CUARTA FILA salir al menu de repartidor
@@ -180,7 +189,7 @@ class Repartidor:
         etiqueta_pass = Label(self.w_deliveryman,text="Password ")
         etiqueta_pass.grid(row=2,column=0,sticky=NSEW)
 
-        intro_pass = Label(self.w_deliveryman,textvariable=self.passwd_repartidor,show="*")
+        intro_pass = Entry(self.w_deliveryman,textvariable=self.passwd_repartidor,show="*")
         intro_pass.grid(row=2,column=1,sticky=NSEW)
 
         # Boton para comprobar si son correctos los datos
@@ -197,7 +206,7 @@ class Repartidor:
 
         resultado_contrasenia = 0
 
-        for resultado_contrasenia in self.deliveryman_cursor:
+        for resultado in self.deliveryman_cursor:
             resultado_contrasenia = resultado_contrasenia + 1
 
         if (resultado_contrasenia == 0):
