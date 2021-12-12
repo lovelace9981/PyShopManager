@@ -58,7 +58,7 @@ def employee_area():
 def delivery_area():
     delivery_win = Toplevel(root)
     instanciate_deliveryman = Repartidor(conn, delivery_win)
-    # instanciate_deliveryman.
+    instanciate_deliveryman.auth_deliveryman()
 
 
 # Arrays de etiquetas y botones

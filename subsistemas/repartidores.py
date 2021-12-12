@@ -149,3 +149,60 @@ class Repartidor:
             l.grid(row=i,column=0,sticky=NSEW)
             b = Button(self.w_deliveryman, text=self.opciones_b[i], command=self.comandos[i])
             b.grid(row=i, column=1, sticky=NSEW)
+
+    def auth_deliveryman(self):
+        # Definimos el titulo de la ventana
+        self.w_deliveryman.title("Autenticacion Repartidor")
+
+        # Definimos la geometria de la ventana
+        self.w_deliveryman.geometry('450x150')
+
+        Grid.rowconfigure(self.w_deliveryman, 0, weight = 2)
+        Grid.rowconfigure(self.w_deliveryman, 1, weight = 2)
+        Grid.rowconfigure(self.w_deliveryman, 2, weight = 2)
+        Grid.rowconfigure(self.w_deliveryman, 3, weight = 2)
+        Grid.rowconfigure(self.w_deliveryman, 4, weight = 2)
+
+        Grid.columnconfigure(self.w_deliveryman, 0, weight = 3)
+        Grid.columnconfigure(self.w_deliveryman, 1, weight = 1)
+
+        etiqueta_titulo = Label(self.w_deliveryman, text="Autenticacion del Repartidor")
+        etiqueta_titulo.grid(row=0,column=0,columnspan=2,sticky=NSEW)
+
+        # Casilla para introducir el ID de Repartidor
+        etiqueta_id = Label(self.w_deliveryman,text="ID Repartidor ")
+        etiqueta_id.grid(row=1,column=0,sticky=NSEW)
+
+        intro_id = Entry(self.w_deliveryman,textvariable=self.auth_id_repartidor)
+        intro_id.grid(row=1,column=1,sticky=NSEW)
+
+        # Casilla para introducir la contrasenia
+        etiqueta_pass = Label(self.w_deliveryman,text="Password ")
+        etiqueta_pass.grid(row=2,column=0,sticky=NSEW)
+
+        intro_pass = Label(self.w_deliveryman,textvariable=self.passwd_repartidor,show="*")
+        intro_pass.grid(row=2,column=1,sticky=NSEW)
+
+        # Boton para comprobar si son correctos los datos
+        comprobacion = Button(self.w_deliveryman,text="Autenticar",command=self.check_deliveryman)
+        comprobacion.grid(row=3,column=0,columnspan=2,sticky=NSEW)
+
+    def check_deliveryman(self):
+        # Obtenemos los datos de entrada del repartidor
+        id_repartidor = self.auth_id_repartidor.get()
+        password = self.passwd_repartidor.get()
+
+        # Query para comprobar el usuario y la contrasenia
+        self.deliveryman_cursor.execute("SELECT ID_REPARTIDOR,NOMBRE FROM REPARTIDOR WHERE ID_REPARTIDOR=? AND PASSWORD=?",(id_repartidor,password))
+
+        resultado_contrasenia = 0
+
+        for resultado_contrasenia in self.deliveryman_cursor:
+            resultado_contrasenia = resultado_contrasenia + 1
+
+        if (resultado_contrasenia == 0):
+            etiqueta_password = Label(self.w_deliveryman,fg="red",text="ID o password incorrecto, intentelo de nuevo")
+            etiqueta_password.grid(row=4,column=0,sticky=NSEW)
+        elif (resultado_contrasenia == 1):
+            self.id_repartidor=id_repartidor
+            self.main_repartidor()
