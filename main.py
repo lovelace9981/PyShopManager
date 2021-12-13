@@ -5,6 +5,7 @@ from tkinter import ttk
 
 from subsistemas.clientes import Cliente
 from subsistemas.repartidores import Repartidor
+from subsistemas.empleados import Empleado
 
 #Importacion de menus de terminal prefabricados
 
@@ -50,9 +51,9 @@ def client_area():
 
 # Ventana de empleado
 def employee_area():
-    employee_win = Toplevel(root)
-    employee_win.geometry('400x400')
-    employee_win.title('Area Empleado')
+    w_empleado = Toplevel(root)
+    instanciate_empleado = Empleado(conn, w_empleado)
+    instanciate_empleado.auth_employee()
 
 # Ventana de repartidor
 def delivery_area():

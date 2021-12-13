@@ -1,9 +1,10 @@
-#from typing import Sized
 import mariadb
 import sys
 import time
 from tkinter import *
 from tkinter import ttk
+# Para manejo de fechas en formato SQL
+from datetime import date, datetime
 
 class Cliente:
     #Constructor
@@ -15,9 +16,9 @@ class Cliente:
         # cursor propio de consultas
         self.client_cursor = conn.cursor()
         # list de opciones
-        self.opciones_l = ['Ver Productos','Comprar un producto','Mis datos','Salir']
-        self.opciones_b = ['Ver','Comprar','Mis datos','Salir']
-        self.commands = [self.ver_productos,self.comprar_producto,self.mostrar_datos_cliente,self.w_client.destroy]
+        self.opciones_l = ['Ver Productos','Comprar un producto','Mis datos','Mis Pedidos','Salir']
+        self.opciones_b = ['Ver','Comprar','Mis datos','Mis Pedidos','Salir']
+        self.commands = [self.ver_productos,self.comprar_producto,self.mostrar_datos_cliente,self.mostrar_pedidos,self.w_client.destroy]
         # Obtencion de datos desde entradas, necesario.
         self.auth_id_entry = StringVar()
         self.auth_passwd_entry = StringVar()
@@ -30,6 +31,57 @@ class Cliente:
         #Limpiando la ventana Para mostrar los datos correctos
         for widget in self.w_client.winfo_children():
             widget.destroy()
+
+    def mostrar_pedidos(self):
+        # Limpiamos ventana para mostrarla al cliente
+        self.clean_w()
+
+        # Consulta de lectura de los productos
+        self.client_cursor.execute("SELECT * FROM PEDIDO WHERE ID_CLIENTE=?", (self.id_cliente,))
+
+        # Obtencion y definicion de los nombres de las columnas de la tabla
+        # https://dev.mysql.com/doc/connector-python/en/connector-python-api-mysqlcursor-description.html
+        # https://mariadb.com/docs/reference/conpy/api/description/
+        # Cada fila incluye en formato read en la primera columna el nombre.
+        column_headers = []
+        size_columns = len(self.client_cursor.description)
+        for d in range(size_columns):
+            column_headers.append(self.client_cursor.description[d][0])
+        
+        #Creamos el treeview para visualizar los elementos, con 10 filas de alto
+        table_treeview = ttk.Treeview(self.w_client, columns=column_headers, height=10, show='headings', selectmode="none")
+        
+        # Ajuste de anchura de las columnas
+        for d in range(size_columns):
+            table_treeview.column(column_headers[d],width=100,minwidth=100)
+
+        # ANCHOR es la ubicacion del texto
+        for d in range(size_columns):
+            table_treeview.heading(column_headers[d],text=column_headers[d],anchor=CENTER)
+
+        # Obtencion de los datos de la tabla
+        row_data = []
+        
+        for stock in self.client_cursor:
+            for j in range(len(stock)):
+                row_data.append(stock[j])
+            table_treeview.insert('', END, values=row_data)
+            row_data.clear()
+
+        #Creamos un scroll, la orientacion indica como queremos el scroll vertical es a la derecha para subir y bajar con yview
+        scrollbar = Scrollbar(self.w_client, orient='vertical',command=table_treeview.yview)
+        
+        #configuramos el treeview para hacer scroll
+        table_treeview.configure(yscrollcommand=scrollbar.set)
+        
+        #Configuracion de visualizacion
+        self.w_client.geometry('800x400')
+        #Ajuste para que se vean las 3 columnas de producto
+        table_treeview.grid(row=0,column=0,padx=30,pady=30,sticky=NSEW)
+        scrollbar.grid(row=0,column=1,padx=3,pady=3,sticky=NS)
+      
+        exit_button = Button(self.w_client, text="Menu Cliente", command=self.main_client)
+        exit_button.grid(row=1,column=0,padx=5,pady=5,sticky=NS)
 
     def ver_productos(self):
         # Limpiamos ventana para mostrarla al cliente
@@ -187,22 +239,22 @@ class Cliente:
         exit_button.grid(row=1,column=0,padx=5,pady=5,sticky=NS)
 
     # FALTA La introduccion de la fecha de reparto
-    def transaction_product(self, id_producto, cantidad):
+    def transaction_product(self, id_producto, cantidad, date):
         #DEBUG ZONE
         #print(id_producto)
         #print(cantidad)
         
         try:
             self.client_cursor.execute("SAVEPOINT COMPRA")
-            self.client_cursor.execute("INSERT INTO PEDIDO (ID_CLIENTE, ID_PRODUCTO, FECHA_PEDIDO, EN_REPARTO) VALUES (?,?,NOW(),?)",(self.id_cliente, id_producto,0))
+            self.client_cursor.execute("INSERT INTO PEDIDO (ID_CLIENTE, ID_PRODUCTO, CANTIDAD, FECHA_PEDIDO, FECHA_ENTREGA_PROGRAMADA, REPARTIDO, EN_REPARTO) VALUES (?,?,?,NOW(),?,0,0)",(self.id_cliente, cantidad, id_producto,date))
             self.client_cursor.execute("UPDATE STOCK SET CANTIDAD=CANTIDAD-? WHERE ID_PRODUCTO=?",(cantidad,id_producto))
             self.client_cursor.execute("COMMIT")
 
             l_buy_error = Label(self.w_client,fg="blue",text="                     Compra Confirmada. Gracias                       ")
-            l_buy_error.grid(row=4,column=0,columnspan=2,padx=5,pady=5)
+            l_buy_error.grid(row=5,column=0,columnspan=2,padx=5,pady=5)
         except self.client_db_conn.Error as error_execution:
             l_buy_error = Label(self.w_client,fg="red",text=format(error_execution))
-            l_buy_error.grid(row=4,column=0,columnspan=2,padx=5,pady=5)
+            l_buy_error.grid(row=5,column=0,columnspan=2,padx=5,pady=5)
             self.client_cursor.execute("ROLLBACK TO COMPRA")
 
     def comprar_producto(self):
@@ -217,14 +269,16 @@ class Cliente:
         # Primera fila Label de ID_PRODUCTO y Entry introducion de datos Col 0 y 1 respectivamente
         # Segunda fila Label de cantidad de producto y Entry introducion de datos Col 0 y 1 respectivamente
         # Tercera fila Label de Ventana Aux De consultar Productos y boton de llamada de consultar dichos productos
-        # Cuarta fila Button de confirmacion de pedido y Button de salir al menu de cliente
-        # Quinta fila de error de ejecucion o todo correcto
+        # Cuarta fila Label de fecha de pedido y de entrada de la fecha que requiera  FORMATO YYYY-MM-DD
+        # Quinta fila Button de confirmacion de pedido y Button de salir al menu de cliente
+        # Sexta fila de error de ejecucion o todo correcto
         # Ajuste de filas
         Grid.rowconfigure(self.w_client, 0, weight = 2)
         Grid.rowconfigure(self.w_client, 1, weight = 2)
         Grid.rowconfigure(self.w_client, 2, weight = 2)
         Grid.rowconfigure(self.w_client, 3, weight = 2)
         Grid.rowconfigure(self.w_client, 4, weight = 2)
+        Grid.rowconfigure(self.w_client, 5, weight = 2)
 
         # Ajuste de columnas
         Grid.columnconfigure(self.w_client, 0, weight = 3)
@@ -260,13 +314,25 @@ class Cliente:
         consulta_button = Button(self.w_client, text="Consultar producto", command=self.ver_productos_compra)
         consulta_button.grid(row=2,column=1,padx=5,pady=5,sticky=NSEW)  
         
-        # Fila 4 - Boton de confirmar compra y salida al menu
-        submit_button = Button(self.w_client, text="Confirmar Compra", command=lambda: self.transaction_product(val_id_prod.get(), val_cantidad.get()))
-        submit_button.grid(row=3,column=0,padx=5,pady=5,sticky=NSEW) 
+        # Fila 4 - Introducion de fecha
+        l_date = Label(self.w_client,text="Fecha entrega YYYY-MM-DD: ")
+        l_date.grid(row=3,column=0,padx=5,pady=5,sticky=NSEW)
+
+        # Ponemos la fecha de ahora por defecto
+        now = datetime.now()
+        string_fecha = StringVar(value=now.strftime('%Y-%m-%d'))
+
+        #Ponemos la caja de introducion de cantidad
+        fecha_entry = Entry(self.w_client,textvariable=string_fecha)
+        fecha_entry.grid(row=3,column=1,padx=5,pady=5,sticky=NSEW)
+
+        # Fila 5 - Boton de confirmar compra y salida al menu
+        submit_button = Button(self.w_client, text="Confirmar Compra", command=lambda: self.transaction_product(val_id_prod.get(), val_cantidad.get(),string_fecha.get()))
+        submit_button.grid(row=4,column=0,padx=5,pady=5,sticky=NSEW) 
         
         check_button = Button(self.w_client, text="Volver al Menu", command=self.main_client)
-        check_button.grid(row=3,column=1,padx=5,pady=5,sticky=NSEW)   
-        # Fila 5 - Imprimida en transaction_product
+        check_button.grid(row=4,column=1,padx=5,pady=5,sticky=NSEW)   
+        # Fila 6 - Imprimida en transaction_product
 
     # Funcion de comprobacion de que el cliente es correcto
     def check_client(self):
@@ -281,8 +347,6 @@ class Cliente:
         result_password = 0
         #Comprobamos si la columna de ID_CLIENTE es devuelta si devuelve 1 es que el cliente y su contrasenia es correcta
         for resultado in self.client_cursor:
-            #debug
-            #print(resultado)
             result_password = result_password + 1
 
         if (result_password == 0):
@@ -347,12 +411,12 @@ class Cliente:
         Grid.rowconfigure(self.w_client, 1, weight = 2)
         Grid.rowconfigure(self.w_client, 2, weight = 2)
         Grid.rowconfigure(self.w_client, 3, weight = 2)
+        Grid.rowconfigure(self.w_client, 4, weight = 2)
 
         Grid.columnconfigure(self.w_client, 0, weight = 3)
         Grid.columnconfigure(self.w_client, 1, weight = 1)
 
-        labels = range(len(self.opciones_l))
-        for i in range(4):
+        for i in range(len(self.opciones_l)):
             l = Label(self.w_client,text=self.opciones_l[i])
             l.grid(row=i,column=0,padx=5,pady=5,sticky=NSEW)
             b = Button(self.w_client, text=self.opciones_b[i], command=self.commands[i])
