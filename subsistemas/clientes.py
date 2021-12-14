@@ -244,7 +244,7 @@ class Cliente:
         print(date)
         try:
             self.client_cursor.execute("SAVEPOINT COMPRA")
-            self.client_cursor.execute("INSERT INTO PEDIDO (ID_CLIENTE, ID_PRODUCTO, CANTIDAD, FECHA_PEDIDO, FECHA_ENTREGA_PROGRAMADA, REPARTIDO, EN_REPARTO) VALUES (?,?,?,NOW(),?,0,0)",(self.id_cliente, id_producto, cantidad, date))
+            self.client_cursor.execute("INSERT INTO PEDIDO (ID_CLIENTE, ID_PRODUCTO, CANTIDAD, FECHA_PEDIDO, FECHA_ENTREGA_PROGRAMADA, ESTADO) VALUES (?,?,?,NOW(),?,1)",(self.id_cliente, id_producto, cantidad, date))
             self.client_cursor.execute("UPDATE STOCK SET CANTIDAD=CANTIDAD-? WHERE ID_PRODUCTO=?",(cantidad,id_producto))
             self.client_cursor.execute("COMMIT")
 
