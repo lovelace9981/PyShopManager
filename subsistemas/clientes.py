@@ -25,7 +25,6 @@ class Cliente:
         # identificador del cliente al autenticar
         self.id_cliente = -1
 
-
     # Cleaning widgets on same windows w_client
     def clean_w(self):
         #Limpiando la ventana Para mostrar los datos correctos
@@ -135,7 +134,6 @@ class Cliente:
         exit_button.grid(row=1,column=0,padx=5,pady=5,sticky=NS)
 
     def mostrar_datos_cliente(self):
-        print(self.id_cliente)
         self.w_client.title("Mis datos")
         self.w_client.geometry("650x150")
         self.client_cursor.execute("SELECT ID_CLIENTE, NOMBRE, TELEFONO, DIRECCION, COD_POSTAL FROM CLIENTE WHERE ID_CLIENTE=?",(self.id_cliente,))
@@ -241,12 +239,12 @@ class Cliente:
     # FALTA La introduccion de la fecha de reparto
     def transaction_product(self, id_producto, cantidad, date):
         #DEBUG ZONE
-        #print(id_producto)
-        #print(cantidad)
-        
+        print(id_producto)
+        print(cantidad)
+        print(date)
         try:
             self.client_cursor.execute("SAVEPOINT COMPRA")
-            self.client_cursor.execute("INSERT INTO PEDIDO (ID_CLIENTE, ID_PRODUCTO, CANTIDAD, FECHA_PEDIDO, FECHA_ENTREGA_PROGRAMADA, REPARTIDO, EN_REPARTO) VALUES (?,?,?,NOW(),?,0,0)",(self.id_cliente, cantidad, id_producto,date))
+            self.client_cursor.execute("INSERT INTO PEDIDO (ID_CLIENTE, ID_PRODUCTO, CANTIDAD, FECHA_PEDIDO, FECHA_ENTREGA_PROGRAMADA, REPARTIDO, EN_REPARTO) VALUES (?,?,?,NOW(),?,0,0)",(self.id_cliente, id_producto, cantidad, date))
             self.client_cursor.execute("UPDATE STOCK SET CANTIDAD=CANTIDAD-? WHERE ID_PRODUCTO=?",(cantidad,id_producto))
             self.client_cursor.execute("COMMIT")
 
@@ -341,8 +339,7 @@ class Cliente:
         password = self.auth_passwd_entry.get()
         
         #query necesaria para comprobar el usuario y contrasenia
-        # Hacerlo con trigger?
-        self.client_cursor.execute("SELECT ID_CLIENTE,NOMBRE FROM CLIENTE WHERE ID_CLIENTE=? AND PASSWORD=?", (id_cliente, password))
+        self.client_cursor.execute("SELECT ID_CLIENTE,NOMBRE FROM CLIENTE WHERE ID_CLIENTE=? AND PASSWORD=? AND ID_EMPLEADO_BAJA IS NULL", (id_cliente, password))
 
         result_password = 0
         #Comprobamos si la columna de ID_CLIENTE es devuelta si devuelve 1 es que el cliente y su contrasenia es correcta
