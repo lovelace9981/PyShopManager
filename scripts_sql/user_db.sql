@@ -1,3 +1,6 @@
+DROP USER IF EXISTS 'tiendabd'@'localhost';
+DROP DATABASE IF EXISTS tiendabd;
+
 CREATE USER 'tiendabd'@'localhost' IDENTIFIED BY 'password';
 
 CREATE DATABASE tiendabd;

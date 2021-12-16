@@ -1,6 +1,11 @@
-Primero debemos con el usuario root de MariaDB insertar los usuarios de la base de datos y crear la base de datos.
+Prerequisitos con el Binario
 
+Instalar MariaDB como SGBD
 
-mysql -u root -p < user_db.sql
+En sistemas Debian-like:
 
-Luego damos permisos de ejecucion al script de sgbd.sh y lo ejecutamos
+apt-get install mariadb-server mariadb-client mariadb-connector-c
+
+En sistemas RedHat-like:
+
+dnf install mariadb mariadb-server mariadb-connector-c
