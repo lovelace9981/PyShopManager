@@ -1,10 +1,14 @@
-Prerequisitos con el Binario
+El sistema de información la GUI utiliza Tkinter python como frontend.
+
+El connector es de Mariadb.
+
+Prerequisitos con el Binario:
 
 Instalar MariaDB como SGBD
 
 En sistemas Debian-like:
 
-apt-get install mariadb-server mariadb-client mariadb-connector-c
+apt-get install mariadb-server mariadb-client libmariadb3
 
 En sistemas RedHat-like:
 
@@ -12,4 +16,18 @@ dnf install mariadb mariadb-server mariadb-connector-c
 
 El Binario empaquetado se encuenta en dist/sistema_informacion_tienda
 
-Proximamente... Se incluyen las librerias de desarrollo.
+Librería de desarrollo
+
+Necesitamos librerías de Tkinter y Mariadb-connector-python
+
+En sistemas Debian-like:
+
+apt-get install libmariadb-dev python3-tk
+
+pip3 install mariadb
+
+En sistemas RedHat-like:
+
+dnf install python3-tkinter 
+
+pip3 install mariadb
