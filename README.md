@@ -6,7 +6,7 @@ Se ofrecen dos alternativas:
 - Binario ejecutable directo, sin utilizar librerías de desarrollo.
 - Código fuente del Sistema de Información que permita expandir el código con licencia GPLv3.0
 
-# Prerequisitos con el Binario:
+# Prerrequisitos con el Binario
 
 Instalar MariaDB como SGBD
 
@@ -24,7 +24,7 @@ dnf install mariadb mariadb-server mariadb-connector-c
 
 El Binario empaquetado se encuenta en dist/sistema_informacion_tienda
 
-# Librería de desarrollo
+# Librerías de desarrollo
 
 Necesitamos librerías de Tkinter y Mariadb-connector-python
 
