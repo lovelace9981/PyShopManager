@@ -1,4 +1,4 @@
-# Sistema de informacion de Gestión de Tienda
+# PyShopManager
 
 ***Programa escrito en Python utilizando la librería Mariadb-connector para la conexión a base de datos y para la GUI utilizamos Tkinter como librería.***
 
