@@ -19,7 +19,7 @@ try:
     conn = mariadb.connect(
         user="tiendabd",
         password="password",
-        host="localhost",
+        host="127.0.0.1",
         database="tiendabd",
         port=3306
     )
