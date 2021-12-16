@@ -1,5 +1,0 @@
-empleado_button = Button(root, text="Empleado")
-empleado_button.pack()
-reparto_button = Button(root, text="Repartidor")
-reparto_button.pack()
-exit_button = Button(root, text = "Salir")
