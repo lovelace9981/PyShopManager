@@ -353,8 +353,6 @@ class Repartidor:
             l_modify_error.grid(row=5,column=0,columnspan=2,padx=5,pady=5)
             self.deliveryman_cursor.execute("ROLLBACK TO MODIFY")
 
-            # METER TRIGGER PARA COMPROBAR SI EL PEDIDO ES SUYO Y VER SI ESTA EL DE LA FECHA
-
 
     # FUNCIONALIDAD PARA PODER VISUALIZAR LOS PEDIDOS DENTRO DE SELECCION DE PEDIDO
     def ver_pedidos_id(self):
@@ -415,9 +413,173 @@ class Repartidor:
         boton_salir = Button(w_aux_pedidos, text="Salir", command=w_aux_pedidos.destroy)
         boton_salir.grid(row=1,column=0,padx=5,pady=5,sticky=NS)
         
-        
+    # FUNCIONALIDAD PARA CONFIRMAR UN PEDIDO QUE ACABA DE SER ENTREGADO
     def confirmar_pedido(self):
-        print("Hola")
+        # Limpiamos la ventana de widgets
+        self.clean_w()
 
+        # Definimos los parametros de la ventana
+        self.w_deliveryman.geometry('500x200')
+        self.w_deliveryman.title('Confirmar entrega de pedido')
+
+        # PRIMERA FILA para introducir el pedido que ha sido entregado
+        # SEGUNDA FILA para consultar los pedidos en_reparto del repartidor
+        # TERCERA FILA para confirmar y para salir
+        Grid.rowconfigure(self.w_deliveryman,0,weight=2)
+        Grid.rowconfigure(self.w_deliveryman,1,weight=2)
+        Grid.rowconfigure(self.w_deliveryman,2,weight=2)
+
+        # FILA 1 - seleccion del pedido a confirmar
+        etiqueta = Label(self.w_deliveryman,text="Indique el ID del pedido entregado")
+        etiqueta.grid(row=0,column=0,padx=5,pady=5,sticky=NSEW)
+
+        # Variable donde guardamos el id_pedido
+        id_pedido = StringVar()
+
+        # Caja de entrada del id_pedido
+        id_ped_entry = Entry(self.w_deliveryman,textvariable=id_pedido)
+        id_ped_entry.grid(row=0,column=1,padx=5,pady=5,sticky=NSEW)
+
+        # FILA 2 - Consulta de los pedidos en reparto de self.id_repartidor
+        etiqueta_consulta = Label(self.w_deliveryman,text="Consulta tus pedidos en reparto")
+        etiqueta_consulta.grid(row=1,column=0,padx=5,pady=5,sticky=NSEW)
+
+        # Boton de la consulta
+        consulta_pedidos = Button(self.w_deliveryman,text="Consultar pedidos",command=self.ver_pedidos_reparto)
+        consulta_pedidos.grid(row=1,column=1,padx=5,pady=5,sticky=NSEW)
+
+        # FILA 3 - Confirmar pedido y salir al menu repartidor
+        boton_modificar = Button(self.w_deliveryman, text="Confirmar reparto", command=lambda: self.confirm_transaction(id_pedido.get()))
+        boton_modificar.grid(row=2,column=0,padx=5,pady=5,sticky=NSEW)
+
+        boton_salir = Button(self.w_deliveryman, text="Volver al menu", command=self.main_repartidor)
+        boton_salir.grid(row=2,column=1,padx=5,pady=5,sticky=NSEW)
+
+    # METODO AUXILIAR PARA MODIFICAR EL ESTADO DEL PEDIDO ID_PEDIDO A CONFIRMADO
+    def confirm_transaction(self,id_pedido):
+        print(id_pedido)
+        try:
+            self.deliveryman_cursor.execute("SAVEPOINT CONFIRM")
+            self.deliveryman_cursor.execute("UPDATE PEDIDO SET ESTADO=? WHERE ID_PEDIDO=?", (3,id_pedido,))
+            self.deliveryman_cursor.execute("COMMIT")
+
+            l_confirm_error = Label(self.w_deliveryman,fg="blue",text="                     Pedido repartido con exito                       ")
+            l_confirm_error.grid(row=3,column=0,columnspan=2,padx=5,pady=5)
+        except self.deliveryman_conn.Error as error_execution:
+            l_confirm_error = Label(self.w_deliveryman,fg="red",text=format(error_execution))
+            l_confirm_error.grid(row=3,column=0,columnspan=2,padx=5,pady=5)
+            self.deliveryman_cursor.execute("ROLLBACK TO CONFIRM")
+
+    def ver_pedidos_reparto(self):
+        self.deliveryman_cursor.execute("SELECT * FROM PEDIDO WHERE ID_REPARTIDOR=? AND ESTADO=?", (self.id_repartidor,2,))
+
+        column_headers = []
+        size_columns = len(self.deliveryman_cursor.description)
+        # Por cada una de las columnas de la tabla PEDIDOS, cogemos su cabecera y la guardamos en el array column_headers
+        for i in range(size_columns):
+            column_headers.append(self.deliveryman_cursor.description[i][0])
+
+        # Creamos una ventana auxiliar donde visualizarlo
+        w_aux_pedidos = Toplevel(self.w_deliveryman)
+        w_aux_pedidos.title('Tus Pedidos')
+
+        # Creamos el treeview para visualizar los elementos
+        tabla = ttk.Treeview(w_aux_pedidos, columns=column_headers, height=10, show='headings', selectmode="none")
+                  
+        # Ajuste de anchura de las columnas
+        for d in range(size_columns):
+            tabla.column(column_headers[d],width=100,minwidth=100)
+
+        # Ubicamos el texto en la ventana
+        for i in range(size_columns):
+            tabla.heading(column_headers[i], text=column_headers[i], anchor=CENTER)
+
+        # Obtenemos los datos de la tabla
+        datos_fila = []
+
+        for pedidos in self.deliveryman_cursor:
+            for i in range(len(pedidos)):
+                datos_fila.append(pedidos[i])
+            print(datos_fila)
+            tabla.insert('', END, values=datos_fila) # Datos fila obviamente no esta obteniendo nada
+            datos_fila.clear()
+
+        # Creamos un scroll vertical a la derecha
+        scrollbar = Scrollbar(w_aux_pedidos, orient='vertical', command=tabla.yview)
+
+        # Configuramos la tabla para hacer scroll
+        tabla.configure(yscrollcommand=scrollbar.set)
+
+        # Configuramos la visualizacion
+        w_aux_pedidos.geometry('1100x400')
+
+        #Ajuste de Grid de las columnas y filas
+        # Primera fila TreeView y scroll Col 0 y 1 respectivamente
+        Grid.rowconfigure(w_aux_pedidos, 0, weight = 2)
+
+        # Ajuste de columnas
+        Grid.columnconfigure(w_aux_pedidos, 0, weight = 3)
+        Grid.columnconfigure(w_aux_pedidos, 1, weight = 1)
+        
+        # Ajustamos para que se vean bien las columnas de los pedidos
+        tabla.grid(row=0,column=0,padx=30,pady=30,sticky=NSEW)
+        scrollbar.grid(row=0,column=1,padx=3,pady=3,sticky=NS)
+
+        boton_salir = Button(w_aux_pedidos, text="Salir", command=w_aux_pedidos.destroy)
+        boton_salir.grid(row=1,column=0,padx=5,pady=5,sticky=NS)
+
+    
     def cancelar_pedido(self):
-        print("Hola")
+                # Limpiamos la ventana de widgets
+        self.clean_w()
+
+        # Definimos los parametros de la ventana
+        self.w_deliveryman.geometry('500x200')
+        self.w_deliveryman.title('Cancelar entrega de pedido')
+
+        # PRIMERA FILA para introducir el pedido que ha sido entregado
+        # SEGUNDA FILA para consultar los pedidos en_reparto del repartidor
+        # TERCERA FILA para confirmar y para salir
+        Grid.rowconfigure(self.w_deliveryman,0,weight=2)
+        Grid.rowconfigure(self.w_deliveryman,1,weight=2)
+        Grid.rowconfigure(self.w_deliveryman,2,weight=2)
+
+        # FILA 1 - seleccion del pedido a confirmar
+        etiqueta = Label(self.w_deliveryman,text="Indique el ID del pedido a cancelar")
+        etiqueta.grid(row=0,column=0,padx=5,pady=5,sticky=NSEW)
+
+        # Variable donde guardamos el id_pedido
+        id_pedido = StringVar()
+
+        # Caja de entrada del id_pedido
+        id_ped_entry = Entry(self.w_deliveryman,textvariable=id_pedido)
+        id_ped_entry.grid(row=0,column=1,padx=5,pady=5,sticky=NSEW)
+
+        # FILA 2 - Consulta de los pedidos en reparto de self.id_repartidor
+        etiqueta_consulta = Label(self.w_deliveryman,text="Consulta tus pedidos en reparto")
+        etiqueta_consulta.grid(row=1,column=0,padx=5,pady=5,sticky=NSEW)
+
+        # Boton de la consulta
+        consulta_pedidos = Button(self.w_deliveryman,text="Consultar pedidos",command=self.ver_pedidos_reparto)
+        consulta_pedidos.grid(row=1,column=1,padx=5,pady=5,sticky=NSEW)
+
+        # FILA 3 - Cancelar pedido y salir al menu repartidor
+        boton_modificar = Button(self.w_deliveryman, text="Cancelar reparto", command=lambda: self.cancel_transaction(id_pedido.get()))
+        boton_modificar.grid(row=2,column=0,padx=5,pady=5,sticky=NSEW)
+
+        boton_salir = Button(self.w_deliveryman, text="Volver al menu", command=self.main_repartidor)
+        boton_salir.grid(row=2,column=1,padx=5,pady=5,sticky=NSEW)
+
+    def cancel_transaction(self,id_pedido):
+        print(id_pedido)
+        try:
+            self.deliveryman_cursor.execute("SAVEPOINT CANCEL")
+            self.deliveryman_cursor.execute("UPDATE PEDIDO SET ESTADO=? WHERE ID_PEDIDO=?", (4,id_pedido,))
+            self.deliveryman_cursor.execute("COMMIT")
+
+            l_confirm_error = Label(self.w_deliveryman,fg="blue",text="                     Pedido cancelado con exito                       ")
+            l_confirm_error.grid(row=3,column=0,columnspan=2,padx=5,pady=5)
+        except self.deliveryman_conn.Error as error_execution:
+            l_confirm_error = Label(self.w_deliveryman,fg="red",text=format(error_execution))
+            l_confirm_error.grid(row=3,column=0,columnspan=2,padx=5,pady=5)
+            self.deliveryman_cursor.execute("ROLLBACK TO CANCEL")
