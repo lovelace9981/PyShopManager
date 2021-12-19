@@ -23,6 +23,10 @@ class Repartidor:
         self.passwd_repartidor = StringVar()
         # ID del repartidor al autenticar
         self.id_repartidor = -1
+    
+    # DESTRUCTOR
+    def __del__(self):
+        self.deliveryman_cursor.close()
 
     # AUTENTICACION DEL REPARTIDOR
     def auth_deliveryman(self):
@@ -275,9 +279,10 @@ class Repartidor:
         try:
             self.deliveryman_cursor.execute("SAVEPOINT SELECCION_PEDIDO")
             self.deliveryman_cursor.execute("UPDATE PEDIDO SET ESTADO=2, ID_REPARTIDOR=? WHERE ID_PEDIDO=?",(self.id_repartidor,id_pedido,))
+            filas_afectadas = format(self.deliveryman_cursor.rowcount)
             self.deliveryman_cursor.execute("COMMIT")
 
-            etiqueta_seleccion = Label(self.w_deliveryman,fg="blue",text="                     Pedido seleccionado correctamente.                       ")
+            etiqueta_seleccion = Label(self.w_deliveryman,fg="blue",text="          Pedido seleccionado correctamente. " + filas_afectadas + " filas afectadas.          ")
             etiqueta_seleccion.grid(row=4,column=0,columnspan=2,padx=5,pady=5,sticky=NSEW)
 
         except self.deliveryman_conn.Error as error_execution:
@@ -344,9 +349,10 @@ class Repartidor:
         try:
             self.deliveryman_cursor.execute("SAVEPOINT MODIFY")
             self.deliveryman_cursor.execute("UPDATE PEDIDO SET ESTADO=?, FECHA_ENTREGA_PROGRAMADA=?, ID_REPARTIDOR=NULL WHERE ID_PEDIDO=?", (1,fecha,id_pedido,))
+            filas_afectadas = format(self.deliveryman_cursor.rowcount)
             self.deliveryman_cursor.execute("COMMIT")
 
-            l_modify_error = Label(self.w_deliveryman,fg="blue",text="                     Pedido modificado con exito                       ")
+            l_modify_error = Label(self.w_deliveryman,fg="blue",text="          Pedido modificado con exito. "+ filas_afectadas +" filas afectadas.        ")
             l_modify_error.grid(row=5,column=0,columnspan=2,padx=5,pady=5)
         except self.deliveryman_conn.Error as error_execution:
             l_modify_error = Label(self.w_deliveryman,fg="red",text=format(error_execution))
@@ -461,9 +467,10 @@ class Repartidor:
         try:
             self.deliveryman_cursor.execute("SAVEPOINT CONFIRM")
             self.deliveryman_cursor.execute("UPDATE PEDIDO SET ESTADO=? WHERE ID_PEDIDO=?", (3,id_pedido,))
+            filas_afectadas = format(self.deliveryman_cursor.rowcount)
             self.deliveryman_cursor.execute("COMMIT")
 
-            l_confirm_error = Label(self.w_deliveryman,fg="blue",text="                     Pedido repartido con exito                       ")
+            l_confirm_error = Label(self.w_deliveryman,fg="blue",text="         Pedido repartido con exito. "+filas_afectadas+" filas afectadas.            ")
             l_confirm_error.grid(row=3,column=0,columnspan=2,padx=5,pady=5)
         except self.deliveryman_conn.Error as error_execution:
             l_confirm_error = Label(self.w_deliveryman,fg="red",text=format(error_execution))
@@ -530,7 +537,7 @@ class Repartidor:
 
     
     def cancelar_pedido(self):
-                # Limpiamos la ventana de widgets
+        # Limpiamos la ventana de widgets
         self.clean_w()
 
         # Definimos los parametros de la ventana
@@ -575,9 +582,10 @@ class Repartidor:
         try:
             self.deliveryman_cursor.execute("SAVEPOINT CANCEL")
             self.deliveryman_cursor.execute("UPDATE PEDIDO SET ESTADO=? WHERE ID_PEDIDO=?", (4,id_pedido,))
+            filas_afectadas = format(self.deliveryman_cursor.rowcount)
             self.deliveryman_cursor.execute("COMMIT")
 
-            l_confirm_error = Label(self.w_deliveryman,fg="blue",text="                     Pedido cancelado con exito                       ")
+            l_confirm_error = Label(self.w_deliveryman,fg="blue",text="         Pedido cancelado con exito. "+filas_afectadas+" filas afectadas.          ")
             l_confirm_error.grid(row=3,column=0,columnspan=2,padx=5,pady=5)
         except self.deliveryman_conn.Error as error_execution:
             l_confirm_error = Label(self.w_deliveryman,fg="red",text=format(error_execution))

@@ -28,6 +28,9 @@ class Empleado:
         # identificador del cliente al autenticar
         self.id_empleado = -1
 
+    def __del__(self):
+        self.empleado_cursor.close()
+
   # Cleaning widgets on same windows w_empleado
     def clean_w(self):
         #Limpiando la ventana Para mostrar los datos correctos

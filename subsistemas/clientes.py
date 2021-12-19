@@ -25,6 +25,10 @@ class Cliente:
         # identificador del cliente al autenticar
         self.id_cliente = -1
 
+    # DESTRUCTOR
+    def __del__(self):
+        self.client_cursor.close()
+
     # Cleaning widgets on same windows w_client
     def clean_w(self):
         #Limpiando la ventana Para mostrar los datos correctos
