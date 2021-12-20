@@ -240,7 +240,6 @@ class Cliente:
         exit_button = Button(w_aux_compra, text="Salir", command=w_aux_compra.destroy)
         exit_button.grid(row=1,column=0,padx=5,pady=5,sticky=NS)
 
-    # FALTA La introduccion de la fecha de reparto
     def transaction_product(self, id_producto, cantidad, date):
         #DEBUG ZONE
         print(id_producto)
