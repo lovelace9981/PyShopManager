@@ -241,10 +241,6 @@ class Cliente:
         exit_button.grid(row=1,column=0,padx=5,pady=5,sticky=NS)
 
     def transaction_product(self, id_producto, cantidad, date):
-        #DEBUG ZONE
-        print(id_producto)
-        print(cantidad)
-        print(date)
         try:
             self.client_cursor.execute("SAVEPOINT COMPRA")
             self.client_cursor.execute("INSERT INTO PEDIDO (ID_CLIENTE, ID_PRODUCTO, CANTIDAD, FECHA_PEDIDO, FECHA_ENTREGA_PROGRAMADA, ESTADO) VALUES (?,?,?,NOW(),?,1)",(self.id_cliente, id_producto, cantidad, date))

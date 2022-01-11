@@ -149,7 +149,6 @@ class Repartidor:
         for pedidos in self.deliveryman_cursor:
             for i in range(len(pedidos)):
                 datos_fila.append(pedidos[i])
-            print(datos_fila)
             tabla.insert('', END, values=datos_fila) # Datos fila obviamente no esta obteniendo nada
             datos_fila.clear()
 
@@ -244,7 +243,6 @@ class Repartidor:
         for pedidos in self.deliveryman_cursor:
             for i in range(len(pedidos)):
                 datos_fila.append(pedidos[i])
-            print(datos_fila)
             tabla.insert('', END, values=datos_fila) # Datos fila obviamente no esta obteniendo nada
             datos_fila.clear()
 
@@ -274,7 +272,6 @@ class Repartidor:
 
     # FUNCION AUXILIAR PARA LA SELECCION DE PEDIDOS QUE REALIZA OPERACIONES EN LA BASE DE DATOS
     def order_selection(self, id_pedido):
-        print(id_pedido)
         # Como controlo que el pedido no este vacio y me de un error?
         try:
             self.deliveryman_cursor.execute("SAVEPOINT SELECCION_PEDIDO")
@@ -344,8 +341,6 @@ class Repartidor:
 
     # METODO AUXILIAR PARA MODIFICAR EL ENVIO SELECCIONADO POR STRING_FECHA
     def modify_transaction(self,fecha,id_pedido):
-        print(fecha)
-        print(id_pedido)
         try:
             self.deliveryman_cursor.execute("SAVEPOINT MODIFY")
             self.deliveryman_cursor.execute("UPDATE PEDIDO SET ESTADO=?, FECHA_ENTREGA_PROGRAMADA=?, ID_REPARTIDOR=NULL WHERE ID_PEDIDO=?", (1,fecha,id_pedido,))
@@ -391,7 +386,6 @@ class Repartidor:
         for pedidos in self.deliveryman_cursor:
             for i in range(len(pedidos)):
                 datos_fila.append(pedidos[i])
-            print(datos_fila)
             tabla.insert('', END, values=datos_fila) # Datos fila obviamente no esta obteniendo nada
             datos_fila.clear()
 
@@ -463,7 +457,6 @@ class Repartidor:
 
     # METODO AUXILIAR PARA MODIFICAR EL ESTADO DEL PEDIDO ID_PEDIDO A CONFIRMADO
     def confirm_transaction(self,id_pedido):
-        print(id_pedido)
         try:
             self.deliveryman_cursor.execute("SAVEPOINT CONFIRM")
             self.deliveryman_cursor.execute("UPDATE PEDIDO SET ESTADO=? WHERE ID_PEDIDO=?", (3,id_pedido,))
@@ -507,7 +500,6 @@ class Repartidor:
         for pedidos in self.deliveryman_cursor:
             for i in range(len(pedidos)):
                 datos_fila.append(pedidos[i])
-            print(datos_fila)
             tabla.insert('', END, values=datos_fila) # Datos fila obviamente no esta obteniendo nada
             datos_fila.clear()
 
@@ -578,7 +570,6 @@ class Repartidor:
         boton_salir.grid(row=2,column=1,padx=5,pady=5,sticky=NSEW)
 
     def cancel_transaction(self,id_pedido):
-        print(id_pedido)
         try:
             self.deliveryman_cursor.execute("SAVEPOINT CANCEL")
             self.deliveryman_cursor.execute("UPDATE PEDIDO SET ESTADO=? WHERE ID_PEDIDO=?", (4,id_pedido,))
